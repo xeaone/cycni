@@ -1,0 +1,27 @@
+{
+  "name": "cycni",
+  "version": "1.0.1",
+  "description": "Collection manipulation tool.",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlexanderElias/cycni.git"
+  },
+  "keywords": [
+    "collection",
+    "manipulation",
+    "array",
+    "object",
+    "set",
+    "get"
+  ],
+  "author": "Alexander Elias",
+  "license": "MPL-2.0",
+  "bugs": {
+    "url": "https://github.com/AlexanderElias/cycni/issues"
+  },
+  "homepage": "https://github.com/AlexanderElias/cycni#readme"
+}

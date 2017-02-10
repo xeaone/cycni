@@ -2,20 +2,6 @@ const SET = 2;
 const GET = 3;
 const REMOVE = 5;
 
-function split (path) {
-	if (path === null || path === undefined) {
-		return [];
-	} else if (path.constructor.name === 'String') {
-		path = path.replace('[', '.');
-		path = path.replace(']', '');
-		path = path.split('.');
-	} else if (path.constructor.name === 'Number') {
-		path = [path];
-	}
-
-	return path;
-}
-
 function queryValueSwitch (clone, path, value, callback) {
 	if (value === null || value === undefined) {
 		return callback(false);
@@ -28,6 +14,20 @@ function queryValueSwitch (clone, path, value, callback) {
 	} else {
 		return callback(false);
 	}
+}
+
+function Split (path) {
+	if (path === null || path === undefined) {
+		return [];
+	} else if (path.constructor.name === 'String') {
+		path = path.replace('[', '.');
+		path = path.replace(']', '');
+		path = path.split('.');
+	} else if (path.constructor.name === 'Number') {
+		path = [path];
+	}
+
+	return path;
 }
 
 function Path (c, p, v, t) {
@@ -43,7 +43,7 @@ function Path (c, p, v, t) {
 		if (p === null || p === undefined) return undefined;
 	}
 
-	p = split(p);
+	p = Split(p);
 
 	for (var i = 0, k = null, l = p.length; i < l; i++) {
 		k = p[i];
@@ -76,19 +76,17 @@ function Path (c, p, v, t) {
 	}
 }
 
-module.exports = function (options) {
+function Cycni (options) {
 
-	options = options || {};
 	options.data = options.data || {};
+	options.type = options.type || GET;
 	options.query = options.query || {};
-
-	if (options.type === null || options.type === undefined) throw new Error('Missing type');
-	if (options.collection === null || options.collection === undefined) throw new Error('Missing collection');
+	options.collection = options.collection || {};
 
 	var type = options.type;
 	var clone = options.collection;
 
-	var paths = split(options.query.path);
+	var paths = Split(options.query.path);
 	var length = paths.length;
 
 	var path = null;
@@ -131,18 +129,29 @@ module.exports = function (options) {
 
 }
 
-// Cycni.prototype.GET = GET;
-// Cycni.prototype.SET = SET;
-// Cycni.prototype.REMOVE = REMOVE;
+module.exports.interact = function (options) {
+	options = options || {};
+	return Cycni(options);
+}
 
-// module.export = function (options) {
-// 	options = options || {};
-//
-// 	options.data = options.data || {};
-// 	options.query = options.query || {};
-//
-// 	if (options.type === null || options.type === undefined) throw new Error('Missing type');
-// 	if (options.collection === null || options.collection === undefined) throw new Error('Missing collection');
-//
-// 	return new Cycni(options);
-// }
+module.exports.get = function (options) {
+	options = options || {};
+	options.type = GET;
+	return Cycni(options);
+}
+
+module.exports.set = function (options) {
+	options = options || {};
+	options.type = SET;
+	return Cycni(options);
+}
+
+module.exports.remove = function (options) {
+	options = options || {};
+	options.type = REMOVE;
+	return Cycni(options);
+}
+
+module.exports.GET = GET;
+module.exports.SET = SET;
+module.exports.REMOVE = REMOVE;

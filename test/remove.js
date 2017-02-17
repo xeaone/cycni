@@ -1,4 +1,4 @@
-const Cycni = require('../index');
+const Cycni = require('../dist/cycni');
 var collection = require('./collection');
 
 var options = {
@@ -7,15 +7,13 @@ var options = {
 	query: {
 		value: 'Regular',
 		path: 'batters.batter.0.type'
-	},
-	data: {
-		path: 0
 	}
 };
 
-Cycni.remove(options);
+var result = Cycni.remove(options);
 
 console.log('\n');
-console.log(collection);
+// console.log(collection);
+console.log(collection.batters);
 console.log('\n');
-console.log(collection.batters.batter);
+console.log(result);

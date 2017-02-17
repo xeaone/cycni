@@ -1,4 +1,4 @@
-const Cycni = require('../index');
+const Cycni = require('../dist/cycni');
 var collection = require('./collection');
 
 var options = {
@@ -7,9 +7,6 @@ var options = {
 	query: {
 		value: '0',
 		path: 'batters.batter.0.id'
-	},
-	data: {
-		path: 0
 	}
 };
 

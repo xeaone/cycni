@@ -1,6 +1,14 @@
-const SET = 2;
-const GET = 3;
-const REMOVE = 5;
+/*
+	@preserve
+	title: cycni
+	version: 1.0.3
+	license: mpl-2.0
+	author: alexander elias
+*/
+
+var SET = 2;
+var GET = 3;
+var REMOVE = 5;
 
 function queryValueSwitch (clone, path, value, callback) {
 	if (value === null || value === undefined) {
@@ -76,7 +84,7 @@ function Path (c, p, v, t) {
 	}
 }
 
-function Cycni (options) {
+function manipulate (options) {
 
 	options.data = options.data || {};
 	options.type = options.type || GET;
@@ -129,29 +137,33 @@ function Cycni (options) {
 
 }
 
-module.exports.interact = function (options) {
-	options = options || {};
-	return Cycni(options);
-}
+var Cycni = {};
 
-module.exports.get = function (options) {
+Cycni.GET = GET;
+Cycni.SET = SET;
+Cycni.REMOVE = REMOVE;
+
+Cycni.interact = function (options) {
+	options = options || {};
+	return manipulate(options);
+};
+
+Cycni.get = function (options) {
 	options = options || {};
 	options.type = GET;
-	return Cycni(options);
-}
+	return manipulate(options);
+};
 
-module.exports.set = function (options) {
+Cycni.set = function (options) {
 	options = options || {};
 	options.type = SET;
-	return Cycni(options);
-}
+	return manipulate(options);
+};
 
-module.exports.remove = function (options) {
+Cycni.remove = function (options) {
 	options = options || {};
 	options.type = REMOVE;
-	return Cycni(options);
-}
+	return manipulate(options);
+};
 
-module.exports.GET = GET;
-module.exports.SET = SET;
-module.exports.REMOVE = REMOVE;
+export default Cycni;

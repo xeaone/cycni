@@ -1,7 +1,8 @@
 {
   "name": "cycni",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Collection manipulation tool.",
+  "browser": "dist/cycni.js",
   "main": "dist/cycni.js",
   "module": "src/cycni.b.m.js",
   "scripts": {

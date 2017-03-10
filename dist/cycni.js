@@ -1,8 +1,181 @@
-/*
-	@preserve
-	title: cycni
-	version: 1.0.3
-	license: mpl-2.0
-	author: alexander elias
-*/
-(function(a,b){'object'==typeof exports&&'undefined'!=typeof module?module.exports=b():'function'==typeof define&&define.amd?define('Cycni',b):a.Cycni=b()})(this,function(){'use strict';function a(m,n,o,q){return null===o||void 0===o?q(!1):'String'===o.constructor.name&&o.includes(m[n])?q(!0):'RegExp'===o.constructor.name&&o.test(m[n])?q(!0):'Function'===o.constructor.name&&o(m[n],m,n)?q(!0):q(!1)}function b(m){return null===m||void 0===m?[]:('String'===m.constructor.name?(m=m.replace('[','.'),m=m.replace(']',''),m=m.split('.')):'Number'===m.constructor.name&&(m=[m]),m)}function d(m,n,o,q){if((null===q||void 0===q)&&(q=o,o=void 0),q===g){if(null===n||void 0===n)return m;}else if(q===h&&(null===n||void 0===n))return;n=b(n);for(var r=0,s=null,u=n.length;r<u;r++){if(s=n[r],null===m[s]||void 0===m[s])if(q===f)isNaN(n)&&(isNaN(n[r+1])?m[s]={}:m[s]=[]);else{if(q===g)return;if(q===h)return}if(r!==u-1)m=m[s];else if(q===f)m[s]=o;else{if(q===g)return m[s];q===h&&('Object'===m.constructor.name?delete m[s]:'Array'===m.constructor.name&&m.splice(s,1))}}}function e(m){m.data=m.data||{},m.type=m.type||g,m.query=m.query||{},m.collection=m.collection||{};var n=m.type,o=m.collection,q=b(m.query.path),r=q.length,s=null,u=0,w=0===r?0:r-1,x=m.base;x=x||0,x=0>x?0:x,x=x>w?w:x,x=w-x;var y=null,z=null;for(u;u<r;u++){if(s=q[u],null===o[s]||void 0===o[s])return;if(u===x&&(y=o,z=s),u==w)return a(o,s,m.query.value,function(A){if(A)return d(y,m.data.path||z,m.data.value,n)});o=o[s]}}var f=2,g=3,h=5,j={};return j.GET=g,j.SET=f,j.REMOVE=h,j.interact=function(m){return m=m||{},e(m)},j.get=function(m){return m=m||{},m.type=g,e(m)},j.set=function(m){return m=m||{},m.type=f,e(m)},j.remove=function(m){return m=m||{},m.type=h,e(m)},j});
+(function (global, factory) {
+	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+	typeof define === 'function' && define.amd ? define('Cycni', factory) :
+	(global.Cycni = factory());
+}(this, (function () { 'use strict';
+
+	/*
+		@preserve
+		title: cycni
+		version: 1.0.3
+		license: mpl-2.0
+		author: alexander elias
+	*/
+
+	var SET = 2;
+	var GET = 3;
+	var REMOVE = 5;
+
+	function queryValueSwitch (clone, path, value, callback) {
+		if (value === null || value === undefined) {
+			return callback(false);
+		} else if (value.constructor.name === 'String' && value.includes(clone[path])) {
+			return callback(true);
+		} else if (value.constructor.name === 'RegExp' && value.test(clone[path])) {
+			return callback(true);
+		} else if (value.constructor.name === 'Function' && value(clone[path], clone, path)) {
+			return callback(true);
+		} else {
+			return callback(false);
+		}
+	}
+
+	function split (path) {
+		if (path === null || path === undefined) {
+			path = [];
+		} else if (path.constructor.name === 'String') {
+			path = path.replace('[', '.').replace(']', '').split('.');
+		} else if (path.constructor.name === 'Number') {
+			path = [path];
+		}
+
+		return path;
+	}
+
+	function traverse (c, p, v, t) {
+
+		if (t === null || t === undefined) {
+			t = v;
+			v = undefined;
+		}
+
+		if (t === GET) {
+			if (p === null || p === undefined) return c;
+		} else if (t === REMOVE) {
+			if (p === null || p === undefined) return undefined;
+		}
+
+		p = split(p);
+
+		for (var i = 0, k = null, l = p.length; i < l; i++) {
+			k = p[i];
+
+			if (c[k] === null || c[k] === undefined) {
+				if (t === SET) {
+					if (isNaN(p)) {
+						if (isNaN(p[i+1])) {
+							c[k] = {};
+						} else {
+							c[k] = [];
+						}
+					}
+				} else if (t === GET) {
+					return undefined;
+				} else if (t === REMOVE) {
+					return undefined;
+				}
+			}
+
+			if (i === l-1) {
+				if (t === SET) {
+					c[k] = v;
+				} else if (t === GET) {
+					return c[k];
+				} else if (t === REMOVE) {
+					if (c.constructor.name === 'Object') delete c[k];
+					else if (c.constructor.name === 'Array') c.splice(k, 1);
+				}
+			} else {
+				c = c[k];
+			}
+		}
+		
+	}
+
+	function manipulate (options) {
+
+		options.data = options.data || {};
+		options.type = options.type || GET;
+		options.query = options.query || {};
+		options.collection = options.collection || {};
+
+		var type = options.type;
+		var clone = options.collection;
+
+		var paths = split(options.query.path);
+		var length = paths.length;
+
+		var path = null;
+		var index = 0;
+
+		var last = length === 0 ? 0 : length - 1;
+
+		var baseIndex = options.base;
+		baseIndex = baseIndex || 0;
+		baseIndex = baseIndex < 0 ? 0 : baseIndex;
+		baseIndex = baseIndex > last ? last : baseIndex;
+		baseIndex = last - baseIndex;
+
+		var baseClone = null;
+		var basePath = null;
+
+		for (index; index < length; index++) {
+			path = paths[index];
+
+			if (clone[path] === null || clone[path] === undefined) {
+				return undefined;
+			}
+
+			if (index === baseIndex) {
+				baseClone = clone;
+				basePath = path;
+			}
+
+			if (index === last) {
+				return queryValueSwitch(clone, path, options.query.value, function (isValid) {
+					if (isValid) {
+						return traverse(baseClone, options.data.path || basePath, options.data.value, type);
+					}
+				});
+			}
+
+			clone = clone[path];
+
+		}
+
+	}
+
+	function Cycni () {
+		this.GET = GET;
+		this.SET = SET;
+		this.REMOVE = REMOVE;
+	}
+
+	Cycni.prototype.interact = function (options) {
+		options = options || {};
+		return manipulate(options);
+	};
+
+	Cycni.prototype.get = function (options) {
+		options = options || {};
+		options.type = GET;
+		return manipulate(options);
+	};
+
+	Cycni.prototype.set = function (options) {
+		options = options || {};
+		options.type = SET;
+		return manipulate(options);
+	};
+
+	Cycni.prototype.remove = function (options) {
+		options = options || {};
+		options.type = REMOVE;
+		return manipulate(options);
+	};
+
+	var cycni_b = new Cycni();
+
+	return cycni_b;
+
+})));

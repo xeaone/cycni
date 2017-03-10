@@ -24,13 +24,11 @@ function queryValueSwitch (clone, path, value, callback) {
 	}
 }
 
-function Split (path) {
+function split (path) {
 	if (path === null || path === undefined) {
-		return [];
+		path = [];
 	} else if (path.constructor.name === 'String') {
-		path = path.replace('[', '.');
-		path = path.replace(']', '');
-		path = path.split('.');
+		path = path.replace('[', '.').replace(']', '').split('.');
 	} else if (path.constructor.name === 'Number') {
 		path = [path];
 	}
@@ -38,7 +36,7 @@ function Split (path) {
 	return path;
 }
 
-function Path (c, p, v, t) {
+function traverse (c, p, v, t) {
 
 	if (t === null || t === undefined) {
 		t = v;
@@ -51,7 +49,7 @@ function Path (c, p, v, t) {
 		if (p === null || p === undefined) return undefined;
 	}
 
-	p = Split(p);
+	p = split(p);
 
 	for (var i = 0, k = null, l = p.length; i < l; i++) {
 		k = p[i];
@@ -59,8 +57,11 @@ function Path (c, p, v, t) {
 		if (c[k] === null || c[k] === undefined) {
 			if (t === SET) {
 				if (isNaN(p)) {
-					if (isNaN(p[i+1])) c[k] = {};
-					else c[k] = [];
+					if (isNaN(p[i+1])) {
+						c[k] = {};
+					} else {
+						c[k] = [];
+					}
 				}
 			} else if (t === GET) {
 				return undefined;
@@ -82,6 +83,7 @@ function Path (c, p, v, t) {
 			c = c[k];
 		}
 	}
+	
 }
 
 function manipulate (options) {
@@ -94,7 +96,7 @@ function manipulate (options) {
 	var type = options.type;
 	var clone = options.collection;
 
-	var paths = Split(options.query.path);
+	var paths = split(options.query.path);
 	var length = paths.length;
 
 	var path = null;
@@ -126,7 +128,7 @@ function manipulate (options) {
 		if (index === last) {
 			return queryValueSwitch(clone, path, options.query.value, function (isValid) {
 				if (isValid) {
-					return Path(baseClone, options.data.path || basePath, options.data.value, type);
+					return traverse(baseClone, options.data.path || basePath, options.data.value, type);
 				}
 			});
 		}
@@ -137,33 +139,33 @@ function manipulate (options) {
 
 }
 
-var Cycni = {};
+function Cycni () {
+	this.GET = GET;
+	this.SET = SET;
+	this.REMOVE = REMOVE;
+}
 
-Cycni.GET = GET;
-Cycni.SET = SET;
-Cycni.REMOVE = REMOVE;
-
-Cycni.interact = function (options) {
+Cycni.prototype.interact = function (options) {
 	options = options || {};
 	return manipulate(options);
 };
 
-Cycni.get = function (options) {
+Cycni.prototype.get = function (options) {
 	options = options || {};
 	options.type = GET;
 	return manipulate(options);
 };
 
-Cycni.set = function (options) {
+Cycni.prototype.set = function (options) {
 	options = options || {};
 	options.type = SET;
 	return manipulate(options);
 };
 
-Cycni.remove = function (options) {
+Cycni.prototype.remove = function (options) {
 	options = options || {};
 	options.type = REMOVE;
 	return manipulate(options);
 };
 
-export default Cycni;
+export default new Cycni();

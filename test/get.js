@@ -1,4 +1,4 @@
-const Cycni = require('../dist/cycni');
+var Cycni = require('../dist/cycni');
 var collection = require('./collection');
 
 var options = {

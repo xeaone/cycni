@@ -1,6 +1,8 @@
 # Cycni
 **A Collection manipulation tool**
 
+**Warning Experimental**
+
 Cycni is a collection manipulation tool. It enables the ability to get, set, remove, and interact with an infinite depth collection. It provides an interface/api to manipulate objects, arrays, and others (coming soon) in a seamless and consistent method.
 
 More examples coming soon see the test directory more examples.
@@ -21,24 +23,16 @@ More examples coming soon see the test directory more examples.
 	- get
 	- set
 	- remove
-	- interact
 - **Constants**
-	- GET
-	- SET
-	- REMOVE
+	- BREAK
+	- CONTINUE
 
 ## Options
-- base `Number` Defaults to `0` (Changes the starting point of the working data)
+- base `Boolean` Changes the base variable to interact with.
 
-- collection `Array, Object, Map, Set` (Can be nested combinations)
+- collection `Array, Object, Map, Set` (Infinitely nested and combinations)
 
-- query (Search a collection for the path and matching value if provided)
-	- value `String, Number, RegExp, Function`
-	- path `String, Number`
 
-- data (Assigns the value to the path starting at the base)
-	- value `Any`
-	- path `String, Number`
 
 
 ## Examples
@@ -48,36 +42,61 @@ More examples coming soon see the test directory more examples.
 var collection = {
 	id: '0',
 	name: 'Cake',
-	batters: {
-		batter: [{
-			id: '0',
-			type: 'Regular'
-		}, {
-			id: '1',
-			type: 'Chocolate'
-		}, {
-			id: '2',
-			type: 'Blueberry'
-		}]
-	},
+	batters: [{
+		id: '0',
+		type: 'Regular'
+	}, {
+		id: '1',
+		type: 'Chocolate'
+	}, {
+		id: 'u',
+		type: 'Blueberry'
+	}],
 	hello: ['bob']
 };
 
-var result = Cycni.get({
-	collection: collection,
-
-	base: 1, // since the base increased the
-			 // working area is moved
-			 //
-			 // Path: 'batters.batter.0.id'
-			 // Base:     3      2   1  0
-
-
-	query: {
-		value: '0',
-		path: 'batters.batter.0.id'
+var results = Cycni.interact(collection, [
+	{
+		base: true,
+		path: 'batters',
+		action: function (collection, key) {
+			return Cycni.clone(collection[key]);
+		}
+	},
+	{
+		condition: function (collection, key) {
+			return key === 2 ? Cycni.BREAK : undefined;
+		},
+		action: function (collection, key) {
+			return Cycni.set(collection, key, {});
+		}
+	},
+	{
+		condition: function (collection, key) {
+			return key === 0 ? Cycni.CONTINUE : undefined;
+		},
+		action: function (collection, key) {
+			return Cycni.remove(collection, key);
+		}
 	}
-});
+]);
 
-console.log(result); // { id: '0', type: 'Regular' }
+console.log(collection);
+/*
+{ id: '0',
+  name: 'Cake',
+  batters: [ {}, { id: 'u', type: 'Blueberry' } ],
+  hello: [ 'bob' ] }
+*/
+
+console.log(results);
+/*
+[ [ { id: '0', type: 'Regular' },
+    { id: '1', type: 'Chocolate' },
+
+    { id: 'u', type: 'Blueberry' } ],
+  [ {}, {}, {}, undefined ],
+  [ {}, {}, {}, undefined ] ]
+*/
+
 ```

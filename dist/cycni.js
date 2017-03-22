@@ -7,175 +7,125 @@
 	/*
 		@preserve
 		title: cycni
-		version: 1.0.3
+		version: 1.1.0
 		license: mpl-2.0
 		author: alexander elias
 	*/
 
-	var SET = 2;
-	var GET = 3;
-	var REMOVE = 5;
+	var Cycni = {
+		BREAK: 2,
+		CONTINUE: 3,
+	};
 
-	function queryValueSwitch (clone, path, value, callback) {
-		if (value === null || value === undefined) {
-			return callback(false);
-		} else if (value.constructor.name === 'String' && value.includes(clone[path])) {
-			return callback(true);
-		} else if (value.constructor.name === 'RegExp' && value.test(clone[path])) {
-			return callback(true);
-		} else if (value.constructor.name === 'Function' && value(clone[path], clone, path)) {
-			return callback(true);
+	Cycni.clone = function (variable) {
+		var clone;
+
+		if (variable === null || variable === undefined || typeof variable !== 'object') {
+			return variable;
+		} else if (variable.constructor.name === 'Date') {
+			clone = new Date();
+			clone.setTime(variable.getTime());
+		} else if (variable.constructor.name === 'Array') {
+			clone = [];
+			for (var i = 0, l = variable.length; i < l; i++) {
+				clone[i] = this.clone(variable[i]);
+			}
+		} else if (variable.constructor.name === 'Object') {
+			clone = {};
+			for (var key in variable) {
+				if (variable.hasOwnProperty(key)) {
+					clone[key] = this.clone(variable[key]);
+				}
+			}
 		} else {
-			return callback(false);
-		}
-	}
-
-	function split (path) {
-		if (path === null || path === undefined) {
-			path = [];
-		} else if (path.constructor.name === 'String') {
-			path = path.replace('[', '.').replace(']', '').split('.');
-		} else if (path.constructor.name === 'Number') {
-			path = [path];
+			throw new Error('Unable to clone variable. Type is not supported');
 		}
 
-		return path;
-	}
+		return clone;
+	};
 
-	function traverse (c, p, v, t) {
+	Cycni.set = function (collection, key, value) {
+		return collection[key] = value;
+	};
 
-		if (t === null || t === undefined) {
-			t = v;
-			v = undefined;
+	Cycni.get = function (collection, key) {
+		return collection[key];
+	};
+
+	Cycni.remove = function (collection, key) {
+		if (collection.constructor.name === 'Object') {
+			delete collection[key];
+			return collection[key];
+		} else if (collection.constructor.name === 'Array') {
+			return collection.splice(key, 1)[0];
 		}
+	};
 
-		if (t === GET) {
-			if (p === null || p === undefined) return c;
-		} else if (t === REMOVE) {
-			if (p === null || p === undefined) return undefined;
-		}
+	Cycni.paths = function (path) {
+		return typeof path === 'string' && path.length > 0 ? path.split('.') : [];
+	};
 
-		p = split(p);
-
-		for (var i = 0, k = null, l = p.length; i < l; i++) {
-			k = p[i];
-
-			if (c[k] === null || c[k] === undefined) {
-				if (t === SET) {
-					if (isNaN(p)) {
-						if (isNaN(p[i+1])) {
-							c[k] = {};
-						} else {
-							c[k] = [];
-						}
-					}
-				} else if (t === GET) {
-					return undefined;
-				} else if (t === REMOVE) {
-					return undefined;
-				}
-			}
-
-			if (i === l-1) {
-				if (t === SET) {
-					c[k] = v;
-				} else if (t === GET) {
-					return c[k];
-				} else if (t === REMOVE) {
-					if (c.constructor.name === 'Object') delete c[k];
-					else if (c.constructor.name === 'Array') c.splice(k, 1);
-				}
-			} else {
-				c = c[k];
-			}
-		}
-		
-	}
-
-	function manipulate (options) {
-
-		options.data = options.data || {};
-		options.type = options.type || GET;
-		options.query = options.query || {};
-		options.collection = options.collection || {};
-
-		var type = options.type;
-		var clone = options.collection;
-
-		var paths = split(options.query.path);
+	Cycni.traverse = function (collection, path, method) {
+		var key, index = 0;
+		var paths = Cycni.paths(path);
 		var length = paths.length;
-
-		var path = null;
-		var index = 0;
-
 		var last = length === 0 ? 0 : length - 1;
 
-		var baseIndex = options.base;
-		baseIndex = baseIndex || 0;
-		baseIndex = baseIndex < 0 ? 0 : baseIndex;
-		baseIndex = baseIndex > last ? last : baseIndex;
-		baseIndex = last - baseIndex;
-
-		var baseClone = null;
-		var basePath = null;
-
 		for (index; index < length; index++) {
-			path = paths[index];
-
-			if (clone[path] === null || clone[path] === undefined) {
-				return undefined;
-			}
-
-			if (index === baseIndex) {
-				baseClone = clone;
-				basePath = path;
-			}
+			key = paths[index];
 
 			if (index === last) {
-				return queryValueSwitch(clone, path, options.query.value, function (isValid) {
-					if (isValid) {
-						return traverse(baseClone, options.data.path || basePath, options.data.value, type);
-					}
-				});
+				return {
+					key: key,
+					collection: collection,
+					value: method ? method.call(Cycni, collection, key) : undefined
+				};
+			} else {
+				collection = collection[key];
 			}
 
-			clone = clone[path];
+		}
+	};
 
+	Cycni.interact = function (collection, actions) {
+		if (!collection) throw new Error('collection required');
+		if (!actions) throw new Error('actions required');
+
+		var resultsParent = [], resultsChild = [];
+		var  i, l, c, t, result, action, condition;
+
+		for (i = 0, l = actions.length; i < l; i++) {
+			action = actions[i];
+
+			if (collection.constructor.name === 'Array') {
+				for (c = 0, t = collection.length; c < t; c++) {
+					if (action.condition) {
+						condition = action.condition(collection, c);
+						if (condition === Cycni.BREAK) break;
+						else if (condition === Cycni.CONTINUE) continue;
+					}
+
+					if (action.path) {
+						result = Cycni.traverse(collection, action.path, action.action);
+						if (action.base === true) collection = result.collection[result.key];
+					} else {
+						result = { value: action.action ? action.action.call(Cycni, collection, c) : undefined };
+					}
+
+					resultsChild.push(result.value);
+				}
+
+				resultsParent.push(resultsChild);
+			} else {
+				result = Cycni.traverse(collection, action.path, action.action);
+				collection = action.base === true ? result.collection[result.key] : collection;
+				resultsParent.push(result.value);
+			}
 		}
 
-	}
-
-	function Cycni () {
-		this.GET = GET;
-		this.SET = SET;
-		this.REMOVE = REMOVE;
-	}
-
-	Cycni.prototype.interact = function (options) {
-		options = options || {};
-		return manipulate(options);
+		return resultsParent;
 	};
 
-	Cycni.prototype.get = function (options) {
-		options = options || {};
-		options.type = GET;
-		return manipulate(options);
-	};
-
-	Cycni.prototype.set = function (options) {
-		options = options || {};
-		options.type = SET;
-		return manipulate(options);
-	};
-
-	Cycni.prototype.remove = function (options) {
-		options = options || {};
-		options.type = REMOVE;
-		return manipulate(options);
-	};
-
-	var cycni_b = new Cycni();
-
-	return cycni_b;
+	return Cycni;
 
 })));

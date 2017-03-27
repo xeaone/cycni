@@ -1,7 +1,7 @@
 /*
 	@preserve
 	title: cycni
-	version: 1.1.0
+	version: 1.1.1
 	license: mpl-2.0
 	author: alexander elias
 */
@@ -55,13 +55,12 @@ Cycni.remove = function (collection, key) {
 	}
 };
 
-Cycni.paths = function (path) {
-	return typeof path === 'string' && path.length > 0 ? path.split('.') : [];
+Cycni.paths = function (paths) {
+	return paths.split('.');
 };
 
-Cycni.traverse = function (collection, path, method) {
+Cycni.traverse = function (collection, paths, method) {
 	var key, index = 0;
-	var paths = Cycni.paths(path);
 	var length = paths.length;
 	var last = length === 0 ? 0 : length - 1;
 
@@ -72,7 +71,7 @@ Cycni.traverse = function (collection, path, method) {
 			return {
 				key: key,
 				collection: collection,
-				value: method ? method.call(Cycni, collection, key) : undefined
+				value: method && method.constructor.name === 'Function' ? method.call(Cycni, collection, key) : undefined
 			};
 		} else {
 			collection = collection[key];
@@ -81,43 +80,83 @@ Cycni.traverse = function (collection, path, method) {
 	}
 };
 
+Cycni.arr = function (collection, action) {
+	var index = 0, length = collection.length;
+	var paths, result = {}, results = [], condition;
+
+	for (index; index < length; index++) {
+
+		if (action.condition && action.condition.constructor.name === 'Function') {
+			condition = action.condition.call(Cycni, collection, index);
+			if (condition === Cycni.BREAK) break;
+			else if (condition === Cycni.CONTINUE) continue;
+		}
+
+		if (action.path) {
+			paths = index + '.' + action.path;
+			paths = Cycni.paths(paths);
+			result = Cycni.traverse(collection, paths, action.action);
+		} else {
+			result = {
+				value: action.action && action.action.constructor.name === 'Function' ? action.action.call(Cycni, collection, index) : undefined
+			};
+		}
+
+		results.push(result.value);
+	}
+
+	return results;
+};
+
+Cycni.obj = function (collection, action) {
+	var paths, result;
+
+	paths = action.path || this.base;
+	paths = Cycni.paths(paths);
+	result = Cycni.traverse(collection, paths, action.action);
+
+	if (action.base === true) {
+		this.base = result.key;
+		this.collection = result.collection[result.key];
+	}
+
+	return result.value;
+};
+
 Cycni.interact = function (collection, actions) {
 	if (!collection) throw new Error('collection required');
 	if (!actions) throw new Error('actions required');
 
-	var resultsParent = [], resultsChild = [];
-	var  i, l, c, t, result, action, condition;
+	this.base = null;
+	this.collection = collection;
 
-	for (i = 0, l = actions.length; i < l; i++) {
-		action = actions[i];
+	var action, condition;
+	var results = [], result = {};
+	var index = 0, length = actions.length;
 
-		if (collection.constructor.name === 'Array') {
-			for (c = 0, t = collection.length; c < t; c++) {
-				if (action.condition) {
-					condition = action.condition(collection, c);
-					if (condition === Cycni.BREAK) break;
-					else if (condition === Cycni.CONTINUE) continue;
-				}
+	for (index; index < length; index++) {
+		action = actions[index];
 
-				if (action.path) {
-					result = Cycni.traverse(collection, action.path, action.action);
-					if (action.base === true) collection = result.collection[result.key];
-				} else {
-					result = { value: action.action ? action.action.call(Cycni, collection, c) : undefined };
-				}
+		if (action.each === null || action.each === undefined) action.each = true;
+		if (action.base === null || action.base === undefined) action.base = true;
 
-				resultsChild.push(result.value);
-			}
-
-			resultsParent.push(resultsChild);
-		} else {
-			result = Cycni.traverse(collection, action.path, action.action);
-			collection = action.base === true ? result.collection[result.key] : collection;
-			resultsParent.push(result.value);
+		if (action.condition && action.condition.constructor.name === 'Function') {
+			condition = action.condition.call(Cycni, this.collection, index);
+			if (condition === Cycni.BREAK) break;
+			else if (condition === Cycni.CONTINUE) continue;
 		}
+
+		if (this.collection.constructor.name === 'Array' && action.each === true) {
+			result = Cycni.arr(this.collection, action);
+			if (result !== undefined) results.push(result);
+		} else {
+			result = Cycni.obj(this.collection, action);
+			if (result !== undefined) results.push(result);
+		}
+
 	}
 
-	return resultsParent;
+	return results;
 };
 
 export default Cycni;

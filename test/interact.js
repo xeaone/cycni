@@ -3,11 +3,11 @@ var collection = require('./collection');
 
 var results = Cycni.interact(collection, [
 	{
-		base: true,
+		// base: true,
 		path: 'batters',
-		action: function (collection, key) {
-			return Cycni.clone(collection[key]);
-		}
+		// action: function (collection, path) {
+			// return path;
+		// }
 	},
 	{
 		condition: function (collection, key) {
@@ -17,14 +17,16 @@ var results = Cycni.interact(collection, [
 			return Cycni.set(collection, key, {});
 		}
 	},
-	{
-		condition: function (collection, key) {
-			return key === 0 ? Cycni.CONTINUE : undefined;
-		},
-		action: function (collection, key) {
-			return Cycni.remove(collection, key);
-		}
-	}
+	// {
+	// 	condition: function (collection, key) {
+	// 		return key === 0 ? Cycni.CONTINUE : undefined;
+	// 	},
+	// 	action: function (collection, key) {
+	// 		console.log(collection);
+	// 		console.log(key);
+	// 		return Cycni.remove(collection, key);
+	// 	}
+	// }
 ]);
 
 console.log('\n');

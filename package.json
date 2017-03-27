@@ -1,12 +1,12 @@
 {
   "name": "cycni",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Collection manipulation tool.",
   "browser": "dist/cycni.min.js",
   "main": "dist/cycni.js",
   "module": "src/cycni.b.m.js",
   "scripts": {
-    "test": "node test"
+    "build": "muleify pack src dist && muleify pack src/cycni.b.js dist/cycni.min.js -m"
   },
   "repository": {
     "type": "git",

@@ -22,17 +22,22 @@ More examples coming soon see the test directory more examples.
 - **Functions**
 	- get
 	- set
+	- clone
 	- remove
+	- interact
 - **Constants**
 	- BREAK
 	- CONTINUE
 
-## Options
-- base `Boolean` Changes the base variable to interact with.
 
-- collection `Array, Object, Map, Set` (Infinitely nested and combinations)
-
-
+## Cycni.interact
+- collection `Object, Array` (Infinitely nested and combinations)
+- actions `Array` an array of action objects
+	- path `String` path to a value on the collection
+	- each `Boolean` if collection is array apply action for each (default is true)
+	- base `Boolean` changes the modifiable collection to the current path (default is true)
+	- condition `Function` expects a return of `Cycni.BREAK` (ends the loop of actions) or `Cycni.CONTINUE` (skips the current action)
+	- action `Function` provides two arguments `collection` and `key` it give the ability to interact with the collection accepts a return value
 
 
 ## Examples
@@ -57,7 +62,6 @@ var collection = {
 
 var results = Cycni.interact(collection, [
 	{
-		base: true,
 		path: 'batters',
 		action: function (collection, key) {
 			return Cycni.clone(collection[key]);

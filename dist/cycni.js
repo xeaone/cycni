@@ -7,7 +7,7 @@
 	/*
 		@preserve
 		title: cycni
-		version: 1.1.3
+		version: 1.1.4
 		license: mpl-2.0
 		author: alexander elias
 	*/
@@ -46,6 +46,7 @@
 		},
 
 		traverse: function (collection, path, callback) {
+			path = typeof path === 'number' ? path.toString() : path;
 			path = typeof path === 'string' ? this.paths(path) : path;
 
 			var key, index = 0;
@@ -92,9 +93,8 @@
 			return this.traverse(collection, path, function (c, k) {
 				if (c.constructor.name === 'Object') {
 					delete c[k];
-					return collection[k];
 				} else if (c.constructor.name === 'Array') {
-					return c.splice(k, 1)[0];
+					c.splice(k, 1);
 				}
 			});
 		}

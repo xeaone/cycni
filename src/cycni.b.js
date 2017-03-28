@@ -1,7 +1,7 @@
 /*
 	@preserve
 	title: cycni
-	version: 1.1.4
+	version: 1.1.5
 	license: mpl-2.0
 	author: alexander elias
 */
@@ -50,8 +50,10 @@ export default {
 		for (index; index < length; index++) {
 			key = path[index];
 
-			if (index === last) {
-				return callback.call(this, collection, key);
+			if (!(key in collection)) {
+				return callback.call(this, collection, key, false);
+			} else if (index === last) {
+				return callback.call(this, collection, key, true);
 			} else {
 				collection = collection[key];
 			}
@@ -72,8 +74,10 @@ export default {
 	},
 
 	has: function (collection, path, value) {
-		return this.traverse(collection, path, function (c, k) {
-			if (value.constructor.name === 'Function') {
+		return this.traverse(collection, path, function (c, k, e) {
+			if (e === false) {
+				return false;
+			} else if (value.constructor.name === 'Function') {
 				return value(c[k]) || false;
 			} else if (value.constructor.name === 'RegExp') {
 				return value.test(c[k]);

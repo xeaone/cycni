@@ -7,7 +7,7 @@
 	/*
 		@preserve
 		title: cycni
-		version: 1.1.2
+		version: 1.1.3
 		license: mpl-2.0
 		author: alexander elias
 	*/
@@ -73,6 +73,18 @@
 		get: function (collection, path) {
 			return this.traverse(collection, path, function (c, k) {
 				return c[k];
+			});
+		},
+
+		has: function (collection, path, value) {
+			return this.traverse(collection, path, function (c, k) {
+				if (value.constructor.name === 'Function') {
+					return value(c[k]) || false;
+				} else if (value.constructor.name === 'RegExp') {
+					return value.test(c[k]);
+				} else {
+					return c[k] === value;
+				}
 			});
 		},
 

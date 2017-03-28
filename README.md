@@ -25,6 +25,11 @@ More examples coming soon see the test directory more examples.
 - path `String, Array` key names to destination on object or array to be assigned
 - value `Any` the value to assign
 
+## Cycni.has
+- collection `Object, Array` infinitely nested and combinations
+- path `String, Array` key names to destination on object or array to compare values
+- value `Function, RegExp, Any` the value to compare to the destination returns a boolean
+
 ## Cycni.remove
 - collection `Object, Array` infinitely nested and combinations
 - path `String, Array` key names to destination on object or array to be removed

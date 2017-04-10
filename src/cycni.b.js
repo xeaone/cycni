@@ -1,7 +1,7 @@
 /*
 	@preserve
 	title: cycni
-	version: 1.1.6
+	version: 1.1.7
 	license: mpl-2.0
 	author: alexander elias
 */
@@ -55,14 +55,16 @@ export default {
 			if (!(key in collection)) {
 				if (type === this.SET) {
 					if (isNaN(path[index+1])) {
-						collection = collection[key] = {};
+						collection[key] = {};
 					} else {
-						collection = collection[key] = [];
+						collection[key] = [];
 					}
 				} else {
 					return callback.call(this, collection, key, false);
 				}
-			} else if (index === last) {
+			}
+
+			if (index === last) {
 				return callback.call(this, collection, key, true);
 			} else {
 				collection = collection[key];

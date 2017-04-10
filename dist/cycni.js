@@ -7,12 +7,14 @@
 	/*
 		@preserve
 		title: cycni
-		version: 1.1.5
+		version: 1.1.6
 		license: mpl-2.0
 		author: alexander elias
 	*/
 
+
 	var cycni_b = {
+		SET: 2,
 
 		clone: function (variable) {
 			var clone;
@@ -45,7 +47,7 @@
 			return paths.split('.');
 		},
 
-		traverse: function (collection, path, callback) {
+		traverse: function (collection, path, callback, type) {
 			path = typeof path === 'number' ? path.toString() : path;
 			path = typeof path === 'string' ? this.paths(path) : path;
 
@@ -57,7 +59,15 @@
 				key = path[index];
 
 				if (!(key in collection)) {
-					return callback.call(this, collection, key, false);
+					if (type === this.SET) {
+						if (isNaN(path[index+1])) {
+							collection = collection[key] = {};
+						} else {
+							collection = collection[key] = [];
+						}
+					} else {
+						return callback.call(this, collection, key, false);
+					}
 				} else if (index === last) {
 					return callback.call(this, collection, key, true);
 				} else {
@@ -70,7 +80,7 @@
 		set: function (collection, path, value) {
 			return this.traverse(collection, path, function (c, k) {
 				return c[k] = value;
-			});
+			}, this.SET);
 		},
 
 		get: function (collection, path) {

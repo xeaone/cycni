@@ -16,12 +16,12 @@ More examples coming soon see the test directory more examples.
 ## Api
 
 ## Cycni.get
-- collection `Object, Array` (Infinitely nested and combinations)
+- collection `Object, Array` infinitely nested and combinations
 - path `String, Array` key names to destination on object or array
 
 
 ## Cycni.set
-- collection `Object, Array` infinitely nested and combinations
+- collection `Object, Array` infinitely nested and combinations. If the path contains a key that does not exists Cycni will create an object, if the path contains a number that does not exists Cycni will create an array. Then will continue on to set the final path key/index to the value.
 - path `String, Array` key names to destination on object or array to be assigned
 - value `Any` the value to assign
 

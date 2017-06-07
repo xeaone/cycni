@@ -1,16 +1,13 @@
 # Cycni
-**A Collection manipulation tool**
 
-**Warning Experimental**
+Cycni is a collection manipulation tool. It enables the ability to get, set, remove, and interact with an infinite depth collection. It provides an interface/api to manipulate objects, arrays, and others (coming soon) in a seamless and consistent mannor.
 
-Cycni is a collection manipulation tool. It enables the ability to get, set, remove, and interact with an infinite depth collection. It provides an interface/api to manipulate objects, arrays, and others (coming soon) in a seamless and consistent method.
-
-More examples coming soon see the test directory more examples.
+See the test directory for examples.
 
 ## Install
 - `npm install cycni --save`
 - UMD `dist/cycni.js`
-- ESM import `src/cycni.b.m.js`
+- ESM import `src/cycni.b.js`
 
 
 ## Api
@@ -18,7 +15,6 @@ More examples coming soon see the test directory more examples.
 ## Cycni.get
 - collection `Object, Array` infinitely nested and combinations
 - path `String, Array` key names to destination on object or array
-
 
 ## Cycni.set
 - collection `Object, Array` infinitely nested and combinations. If the path contains a key that does not exists Cycni will create an object, if the path contains a number that does not exists Cycni will create an array. Then will continue on to set the final path key/index to the value.
@@ -40,7 +36,7 @@ More examples coming soon see the test directory more examples.
 - callback `Function` arguments are the collection and key of the destination
 
 ## Cycni.clone
-- variable `Any` clones `Object, Array, Date` or returns the value of any another
+-  clones `Object, Array, Date` or returns the value of any another
 
 
 ## Examples

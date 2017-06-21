@@ -1,42 +1,65 @@
 # Cycni
-
-Cycni is a collection manipulation tool. It enables the ability to get, set, remove, and interact with an infinite depth collection. It provides an interface/api to manipulate objects, arrays, and others (coming soon) in a seamless and consistent mannor.
+A collection manipulation tool. It enables the ability to manipulation and interact with an infinitely deep collection. It provides an interface to manipulate objects, arrays, and others (coming soon) in a seamless and consistent method.
 
 See the test directory for examples.
 
 ## Install
 - `npm install cycni --save`
 - UMD `dist/cycni.js`
-- ESM import `src/cycni.b.js`
+- ESMD `src/cycni.js`
 
 
 ## Api
 
-## Cycni.get
-- collection `Object, Array` infinitely nested and combinations
-- path `String, Array` key names to destination on object or array
+### Cycni.get()
+- `collection: Object, Array` collection to retrieve or manipulate
+- `keys: Array` key names to destination on object or array
+- `callback: Function`
+	- `error: Error`
+	- `data: Any` the retrieved value
 
-## Cycni.set
-- collection `Object, Array` infinitely nested and combinations. If the path contains a key that does not exists Cycni will create an object, if the path contains a number that does not exists Cycni will create an array. Then will continue on to set the final path key/index to the value.
-- path `String, Array` key names to destination on object or array to be assigned
-- value `Any` the value to assign
+### Cycni.set()
+Creates an object or array if the key does not exists. Overwrites if the key exists.
 
-## Cycni.has
-- collection `Object, Array` infinitely nested and combinations
-- path `String, Array` key names to destination on object or array to compare values
-- value `Function, RegExp, Any` the value to compare to the destination returns a boolean
+- `collection: Object, Array` collection to retrieve or manipulate
+- `keys: Array` key names to destination on object or array
+- `value: Any` the value to assign
+- `callback: Function`
+	- `error: Error`
 
-## Cycni.remove
-- collection `Object, Array` infinitely nested and combinations
-- path `String, Array` key names to destination on object or array to be removed
+### Cycni.add()
+Errors if any key in the keys does not exists on the collection. Errors if the you try to set a key that already exists.
 
-## Cycni.traverse
-- collection `Object, Array` infinitely nested and combinations
-- path `String, Array` key names to destination on object or array to be removed
-- callback `Function` arguments are the collection and key of the destination
+- `collection: Object, Array` collection to retrieve or manipulate
+- `keys: Array` key names to destination on object or array
+- `value: Any` the value to assign
+- `callback: Function`
+	- `error: Error`
 
-## Cycni.clone
--  clones `Object, Array, Date` or returns the value of any another
+### Cycni.remove()
+- `collection: Object, Array` collection to retrieve or manipulate
+- `keys: Array` key names to destination on object or array
+- `callback: Function`
+	- `error: Error`
+	- `data: Any` the removed item from the collection
+
+### Cycni.has()
+- `collection: Object, Array` collection to retrieve or manipulate
+- `keys: Array` key names to destination on object or array
+- `callback: Function`
+	- `error: Error`
+	- `data: Boolean`
+
+### Cycni.traverse()
+- `collection: Object, Array` collection to retrieve or manipulate
+- `keys: Array` key names to destination on object or array
+- `callback: Function`
+	- `error: Error`
+	- `collection: Object, Array` the parent of the last key in the keys array
+	- `key: String, Number` the last key in the keys array
+
+### Cycni.clone()
+-  `collection: Object, Array, Date` returns a clone
 
 
 ## Examples
@@ -62,22 +85,22 @@ var collection = {
 
 ### Remove
 ```JavaScript
+Cycni.remove(collection, ['batters', '0'], function (error, data) {
+	if (error) throw error;
 
-var results = Cycni.remove(collection, 'batters.0');
+	console.log(collection);
+	/*
+		{ id: '0',
+		  name: 'Cake',
+		  batters:
+		   [ { id: '1', type: 'Chocolate' },
+		     { id: 'u', type: 'Blueberry' } ],
+		  hello: [ 'bob' ] }
+	*/
 
-console.log(collection);
-/*
-{ id: '0',
-  name: 'Cake',
-  batters:
-   [ { id: '1', type: 'Chocolate' },
-     { id: 'u', type: 'Blueberry' } ],
-  hello: [ 'bob' ] }
-*/
-
-console.log(results);
-/*
-{ id: '0', type: 'Regular' }
-*/
-
+	console.log(data
+	/*
+		{ id: '0', type: 'Regular' }
+	*/
+});
 ```

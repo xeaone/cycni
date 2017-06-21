@@ -1,7 +1,7 @@
 var Cycni = require('../dist/cycni');
 var collection = require('./collection');
 
-Cycni.remove(collection, ['batters', 0], function (error, result) {
+Cycni.add(collection, ['batters', 0], 'new', function (error, result) {
 	if (error) {
 		throw error;
 	} else {

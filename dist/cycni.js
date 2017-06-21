@@ -7,7 +7,7 @@
 	/*
 		@banner
 		title: cycni
-		version: 1.1.8
+		version: 1.2.0
 		license: mpl-2.0
 		author: alexander elias
 
@@ -16,9 +16,10 @@
 		file, You can obtain one at http://mozilla.org/MPL/2.0/.
 	*/
 
-	var Cycni = {};
-
-	Cycni.SET = 2;
+	var Cycni = {
+		END: '$END',
+		START: '$START'
+	};
 
 	Cycni.clone = function (variable) {
 		var clone;
@@ -57,82 +58,103 @@
 		return clone;
 	};
 
-	Cycni.paths = function (paths) {
-		return paths.split('.');
-	};
-
-	Cycni.traverse = function (collection, path, callback, type) {
-		path = typeof path === 'number' ? path.toString() : path;
-		path = typeof path === 'string' ? this.paths(path) : path;
+	Cycni.traverse = function (collection, keys, callback, create) {
 
 		var key, index = 0;
-		var length = path.length;
+		var length = keys.length;
 		var last = length === 0 ? 0 : length - 1;
 
-		for (index; index < length; index++) {
-			key = path[index];
+		for (index; index < last; index++) {
+			key = keys[index];
 
 			if (!(key in collection)) {
-
-				if (type === this.SET) {
-
-					if (isNaN(path[index+1])) {
+				if (create) {
+					if (isNaN(keys[index+1])) {
 						collection[key] = {};
 					} else {
 						collection[key] = [];
 					}
-
 				} else {
-					return callback.call(this, collection, key, false);
+					return callback.call(this, new Error('Cannot read property ' + key + ' of undefined'));
 				}
 			}
 
-			if (index === last) {
-				return callback.call(this, collection, key, true);
-			} else {
-				collection = collection[key];
-			}
-
+			collection = collection[key];
 		}
+
+		return callback.call(this, undefined, collection, keys[last]);
 	};
 
-	Cycni.set = function (collection, path, value) {
-		return this.traverse(collection, path, function (c, k) {
-			return c[k] = value;
-		}, this.SET);
-	};
-
-	Cycni.get = function (collection, path) {
-		return this.traverse(collection, path, function (c, k) {
-			return c[k];
-		});
-	};
-
-	Cycni.has = function (collection, path, value) {
-		return this.traverse(collection, path, function (c, k, e) {
-
-			if (e === false) {
-				return false;
-			} else if (value.constructor.name === 'Function') {
-				return value(c[k]) || false;
-			} else if (value.constructor.name === 'RegExp') {
-				return value.test(c[k]);
+	Cycni.get = function (collection, keys, callback) {
+		return this.traverse(collection, keys, function (e, c, k) {
+			if (e) {
+				return callback(e);
 			} else {
-				return c[k] === value;
+				return callback(e, c[k]);
 			}
-
 		});
 	};
 
-	Cycni.remove = function (collection, path) {
-		return this.traverse(collection, path, function (c, k) {
+	Cycni.set = function (collection, keys, value, callback) {
+		return this.traverse(collection, keys, function (e, c, k) {
+			if (e) {
+				return callback(e);
+			} else {
+				if (c.constructor.name === 'Object') {
+					c[k] = value;
+				} else if (c.constructor.name === 'Array') {
+					c.splice(k, 1, value);
+				}
 
-			if (c.constructor.name === 'Object') {
-				delete c[k];
-			} else if (c.constructor.name === 'Array') {
-				c.splice(k, 1);
+				return callback(e);
 			}
+		}, true);
+	};
 
+	Cycni.add = function (collection, keys, value, callback) {
+		return this.traverse(collection, keys, function (e, c, k) {
+			if (e) {
+				return callback(e);
+			} else {
+				if (c.constructor.name === 'Object' && !(k in c)) {
+					c[k] = value;
+					return callback(e);
+				} else if (c.constructor.name === 'Array' && k < 1) {
+					c.splice(k === 0 ? 0 : c.length, 0, value);
+					return callback(e);
+				} else {
+					return callback(new Error('Cannot add property ' + k + ' already exists'));
+				}
+			}
+		});
+	};
+
+	Cycni.has = function (collection, keys, callback) {
+		return this.traverse(collection, keys, function (e, c, k) {
+			if (e) {
+				return callback(e);
+			} else {
+				return callback(e, k in c);
+			}
+		});
+	};
+
+	Cycni.remove = function (collection, keys, callback) {
+		return this.traverse(collection, keys, function (e, c, k) {
+			if (e) {
+				return callback(e);
+			} else {
+				var v;
+
+				if (c.constructor.name === 'Object') {
+					v = c[k];
+					delete c[k];
+				} else if (c.constructor.name === 'Array') {
+					v = c.splice(k, 1);
+				}
+
+				return callback(e, v);
+			}
 		});
 	};
 

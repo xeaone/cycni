@@ -7,12 +7,12 @@ const data = require('./data');
 	let res;
 
 	const opt = {
-		data: data,
-		keys: ['batters', 0]
+		keys: '.',
+		data: data
 	};
 
 	try {
-		res = await Cycni.remove(opt);
+		res = await Cycni.size(opt);
 	} catch (e) {
 		console.error(e);
 	}

@@ -1,13 +1,26 @@
-var Cycni = require('../dist/cycni');
-var collection = require('./collection');
+'use strict';
 
-Cycni.set(collection, ['array', 0], 'blue', function (error, result) {
-	if (error) {
-		throw error;
-	} else {
-		console.log('\n');
-		console.log(collection);
-		console.log('\n');
-		console.log(result);
+const Cycni = require('../dist/cycni');
+const data = require('./data');
+
+(async function() {
+	let res;
+
+	const opt = {
+		data: data,
+		keys: ['array', 0],
+		value: { name: 'new' }
+	};
+
+	try {
+		res = await Cycni.set(opt);
+	} catch (e) {
+		console.error(e);
 	}
-});
+
+	console.log('\n');
+	console.log(data);
+	console.log('\n');
+	console.log(res);
+
+}());

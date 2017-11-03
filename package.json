@@ -1,13 +1,13 @@
 {
   "name": "cycni",
-  "version": "1.2.0",
-  "description": "Collection manipulation tool.",
+  "version": "2.0.0",
+  "description": "A collection manipulation tool",
   "browser": "dist/cycni.min.js",
   "main": "dist/cycni.js",
   "module": "src/cycni.js",
   "scripts": {
-	"build-dev": "muleify pack -b src/cycni.js dist/cycni.js",
-	"build-min": "muleify pack -bm src/cycni.js dist/cycni.min.js",
+    "build-dev": "muleify pack -b src/cycni.js dist/cycni.js",
+    "build-min": "muleify pack -bm src/cycni.js dist/cycni.min.js",
     "build": "npm run build-dev && npm run build-min"
   },
   "repository": {
@@ -27,5 +27,11 @@
   "bugs": {
     "url": "https://github.com/AlexanderElias/cycni/issues"
   },
-  "homepage": "https://github.com/AlexanderElias/cycni#readme"
+  "homepage": "https://github.com/AlexanderElias/cycni#readme",
+  "directories": {
+    "test": "test"
+},
+	"devDependencies": {
+		"muleify": "^2.7.10"
+	}
 }

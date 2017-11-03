@@ -1,106 +1,114 @@
 # Cycni
-A collection manipulation tool. It enables the ability to manipulation and interact with an infinitely deep collection. It provides an interface to manipulate objects, arrays, and others (coming soon) in a seamless and consistent method.
+A collection manipulation tool
 
-See the test directory for examples.
+### Overview
+Cycni enables the ability to manipulation and interact with an infinitely deep collection. It provides an interface to manipulate Objects and Arrays in a seamless and consistent method. Now using async/await.
 
-## Install
-- `npm install cycni --save`
+### Install
+- `npm i cycni --save`
 - UMD `dist/cycni.js`
 - ESMD `src/cycni.js`
 
+### Examples
+```js
+let data = 	{
+	id: '0',
+	name: 'Cake',
+	batters: [
+		{ id: 'zero', type: 'Regular' },
+		{ id: 'one', type: 'Chocolate' },
+		{ id: 'two', type: 'Blueberry' }
+	]
+};
+
+let res, opt = {
+	data: data,
+	keys: ['batters', 0]
+};
+
+try {
+	res = await Cycni.remove(opt);
+} catch (e) {
+	console.error(e);
+}
+
+console.log(data); /*
+	{
+		id: '0',
+		name: 'Cake',
+		batters: [
+			{ id: 'one', type: 'Chocolate' },
+			{ id: 'two', type: 'Blueberry' }
+		]
+  	}
+*/
+
+console.log(res); /*
+	{ id: 'zero', type: 'Regular' }
+*/
+```
 
 ## Api
 
-### Cycni.get()
-- `collection: Object, Array` collection to retrieve or manipulate
-- `keys: Array` key names to destination on object or array
-- `callback: Function`
-	- `error: Error`
-	- `data: Any` the retrieved value
+### Cycni.get(opt)
+Returns the retrieved value.
+- `opt: Object`
+	- `keys: Array`
+	- `value: Any`
+	- `data: Object, Array`
 
-### Cycni.set()
-Creates an object or array if the key does not exists. Overwrites if the key exists.
+### Cycni.set(opt)
+If a key does not exists and the key is a String then an Object is created.
+If a key does not exists and the key is a Number then an Array is created.
+If the key already exists it overwrites that value.
+- `opt: Object`
+	- `keys: Array`
+	- `value: Any`
+	- `data: Object, Array`
 
-- `collection: Object, Array` collection to retrieve or manipulate
-- `keys: Array` key names to destination on object or array
-- `value: Any` the value to assign
-- `callback: Function`
-	- `error: Error`
+### Cycni.add(opt)
+Errors if any key in the keys does not exists on the collection or if the you try to set a key that already exists.
+- `opt: Object`
+	- `keys: Array`
+	- `value: Any`
+	- `data: Object, Array`
 
-### Cycni.add()
-Errors if any key in the keys does not exists on the collection. Errors if the you try to set a key that already exists.
+### Cycni.remove(opt)
+Returns any removed data.
+- `opt: Object`
+	- `keys: Array`
+	- `value: Any`
+	- `data: Object, Array`
 
-- `collection: Object, Array` collection to retrieve or manipulate
-- `keys: Array` key names to destination on object or array
-- `value: Any` the value to assign
-- `callback: Function`
-	- `error: Error`
+### Cycni.has(opt)
+Returns true or false.
+- `opt: Object`
+	- `keys: Array`
+	- `value: Any`
+	- `data: Object, Array`
 
-### Cycni.remove()
-- `collection: Object, Array` collection to retrieve or manipulate
-- `keys: Array` key names to destination on object or array
-- `callback: Function`
-	- `error: Error`
-	- `data: Any` the removed item from the collection
+### Cycni.size(opt)
+Returns the length of the Array or the length of the Keys if it is an object.
+- `opt: Object`
+	- `keys: Array` if the value is `['.']` then the size of the top level element will be provided
+	- `value: Any`
+	- `data: Object, Array`
 
-### Cycni.has()
-- `collection: Object, Array` collection to retrieve or manipulate
-- `keys: Array` key names to destination on object or array
-- `callback: Function`
-	- `error: Error`
-	- `data: Boolean`
+### Cycni.traverse(opt)
+Returns an Object with two properties.
+The last key in the keys array `res.key`.
+The parent of the last key in the keys array `res.data`.
+- `opt: Object`
+	- `keys: Array`
+	- `value: Any`
+	- `data: Object, Array`
 
-### Cycni.traverse()
-- `collection: Object, Array` collection to retrieve or manipulate
-- `keys: Array` key names to destination on object or array
-- `callback: Function`
-	- `error: Error`
-	- `collection: Object, Array` the parent of the last key in the keys array
-	- `key: String, Number` the last key in the keys array
+### Cycni.clone(Any)
+Returns a clone.
 
-### Cycni.clone()
--  `collection: Object, Array, Date` returns a clone
+## Authors
+[AlexanderElias](https://github.com/AlexanderElias)
 
-
-## Examples
-
-### Collection
-```JavaScript
-var collection = {
-	id: '0',
-	name: 'Cake',
-	batters: [{
-		id: '0',
-		type: 'Regular'
-	}, {
-		id: '1',
-		type: 'Chocolate'
-	}, {
-		id: 'u',
-		type: 'Blueberry'
-	}],
-	hello: ['bob']
-};
-```
-
-### Remove
-```JavaScript
-Cycni.remove(collection, ['batters', '0'], function (error, data) {
-	if (error) throw error;
-
-	console.log(collection);
-	/*
-		{ id: '0',
-		  name: 'Cake',
-		  batters:
-		   [ { id: '1', type: 'Chocolate' },
-		     { id: 'u', type: 'Blueberry' } ],
-		  hello: [ 'bob' ] }
-	*/
-
-	console.log(data
-	/*
-		{ id: '0', type: 'Regular' }
-	*/
-});
-```
+## License
+[Why You Should Choose MPL-2.0](http://veldstra.org/2016/12/09/yoo-should-choose-mpl2-for-your-opensource-project.html)
+This project is licensed under the MPL-2.0 License

@@ -1,6 +1,6 @@
 {
   "name": "cycni",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "A collection manipulation tool",
   "browser": "dist/cycni.min.js",
   "main": "dist/cycni.js",

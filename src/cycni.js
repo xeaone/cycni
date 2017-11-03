@@ -1,7 +1,7 @@
 /*
 	@banner
 	title: cycni
-	version: 2.0.0
+	version: 2.1.0
 	license: mpl-2.0
 	author: alexander elias
 
@@ -10,7 +10,13 @@
 	file, You can obtain one at http://mozilla.org/MPL/2.0/.
 */
 
+// import Uuid from './uuid.js';
+
 const Cycni = {};
+
+Cycni.uuid = async function () {
+	return await Uuid();
+};
 
 Cycni.traverse = async function (opt) {
 
@@ -31,14 +37,16 @@ Cycni.traverse = async function (opt) {
 		var key = keys[i];
 
 		if (!(key in data)) {
-			if (create) {
+			if (create === true) {
 				if (isNaN(keys[i+1])) {
 					data[key] = {};
 				} else {
 					data[key] = [];
 				}
+			} else if (create === false) {
+				break;
 			} else {
-				throw new Error('Cycni.traverse - property ' + key + ' of undefined');
+				throw new Error('Cycni.traverse - property ' + key + ' is undefined');
 			}
 		}
 
@@ -52,6 +60,7 @@ Cycni.traverse = async function (opt) {
 };
 
 Cycni.get = async function (opt) {
+	opt.create = false;
 	const res = await Cycni.traverse(opt);
 	return res.data[res.key];
 };
@@ -67,22 +76,53 @@ Cycni.set = async function (opt) {
 };
 
 Cycni.add = async function (opt) {
+	opt.create = undefined;
+
 	const res = await Cycni.traverse(opt);
-	if (res.data.constructor === Object && !(res.key in res.data)) {
-		res.data[res.key] = opt.value;
-	} else if (res.data.constructor === Array && res.key < 1) {
-		res.data.splice(res.key === 0 ? 0 : res.data.length, 0, opt.value);
-	} else {
-		throw new Error('Cycni.add - property ' + res.key + ' exists');
+
+	if (res.data.constructor === Object) {
+		if (res.key in res.data) {
+			throw new Error('Cycni.add - property ' + res.key + ' exists');
+		} else {
+			res.data[res.key] = opt.value;
+		}
+	} else if (res.data.constructor === Array) {
+		res.data.splice(res.key, 0, opt.value);
 	}
 };
 
+Cycni.push = async function (opt) {
+	opt.create = true;
+	const res = await Cycni.traverse(opt);
+	const data = res.key === '.' ? res.data : res.data[res.key];
+
+	if (data.constructor === Object) {
+		const length = Object.keys(data).length;
+		let index = length;
+		let key = '_' + index;
+
+		while (key in data) {
+			key = '_' + index++;
+		}
+
+		data[key] = opt.value;
+
+		return length+1;
+	}else if (data.constructor === Array) {
+		return data.push(opt.value);
+	}
+
+	return 0;
+};
+
 Cycni.has = async function (opt) {
+	opt.create = false;
 	const res = await Cycni.traverse(opt);
 	return res.key in res.data;
 };
 
 Cycni.remove = async function (opt) {
+	opt.create = false;
 	const res = await Cycni.traverse(opt);
 
 	let value;
@@ -98,21 +138,13 @@ Cycni.remove = async function (opt) {
 };
 
 Cycni.size = async function (opt) {
+	opt.create = false;
 	const res = await Cycni.traverse(opt);
-
-	let data;
-
-	if (res.key === '.') {
-		data = res.data;
-	} else {
-		data = res.data[res.key];
-	}
+	const data = res.key === '.' ? res.data : res.data[res.key];
 
 	if (data.constructor === Object) {
 		return Object.keys(data).length;
-	}
-
-	if (data.constructor === Array) {
+	} else if (data.constructor === Array) {
 		return data.length;
 	}
 

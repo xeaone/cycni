@@ -53,8 +53,8 @@ console.log(res); /*
 ### Cycni.get(opt)
 Returns the retrieved value.
 - `opt: Object`
-	- `keys: Array`
 	- `value: Any`
+	- `keys: Array`
 	- `data: Object, Array`
 
 ### Cycni.set(opt)
@@ -62,36 +62,46 @@ If a key does not exists and the key is a String then an Object is created.
 If a key does not exists and the key is a Number then an Array is created.
 If the key already exists it overwrites that value.
 - `opt: Object`
-	- `keys: Array`
 	- `value: Any`
+	- `keys: Array`
 	- `data: Object, Array`
 
 ### Cycni.add(opt)
-Errors if any key in the keys does not exists on the collection or if the you try to set a key that already exists.
+If a key in the keys does not exist or if you try to set a key that already exists this will throw an error.
 - `opt: Object`
-	- `keys: Array`
 	- `value: Any`
+	- `keys: Array`
 	- `data: Object, Array`
+
+### Cycni.push(opt)
+Dynamically pushes data to an Array or Object. If pushing to an Object then a key will auto generate in the form of `_N` N being the length.
+- `opt: Object`
+	- `value: Any`
+	- `keys: Array`
+		- `['.']` top level reference
+	- `data: Object, Array`
+
 
 ### Cycni.remove(opt)
 Returns any removed data.
 - `opt: Object`
+- `value: Any`
 	- `keys: Array`
-	- `value: Any`
 	- `data: Object, Array`
 
 ### Cycni.has(opt)
 Returns true or false.
 - `opt: Object`
-	- `keys: Array`
 	- `value: Any`
+	- `keys: Array`
 	- `data: Object, Array`
 
 ### Cycni.size(opt)
 Returns the length of the Array or the length of the Keys if it is an object.
 - `opt: Object`
-	- `keys: Array` if the value is `['.']` then the size of the top level element will be provided
 	- `value: Any`
+	- `keys: Array`
+		- `['.']` top level reference
 	- `data: Object, Array`
 
 ### Cycni.traverse(opt)
@@ -99,8 +109,8 @@ Returns an Object with two properties.
 The last key in the keys array `res.key`.
 The parent of the last key in the keys array `res.data`.
 - `opt: Object`
-	- `keys: Array`
 	- `value: Any`
+	- `keys: Array`
 	- `data: Object, Array`
 
 ### Cycni.clone(Any)

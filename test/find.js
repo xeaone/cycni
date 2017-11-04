@@ -13,7 +13,7 @@ const data = require('./data');
 	};
 
 	try {
-		res = await Cycni.remove(opt);
+		res = await Cycni.find(opt);
 	} catch (e) {
 		console.error(e);
 	}

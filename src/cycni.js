@@ -18,32 +18,81 @@ Cycni.uuid = async function () {
 	return await Uuid();
 };
 
+// Cycni.traverseKeys = async function (data, method) {
+// 	return await Promise.all(data.map(method));
+// };
+
+Cycni.map = async function (data, callback) {
+	return await Promise.all(data.map(callback));
+};
+
+Cycni.return = async function (data, handler) {
+	if (data.constructor === Array) {
+		if (handler.constructor === Function) {
+			return data.map(handler);
+		} else {
+			return await Promise.all(data.map(handler));
+		}
+	} else {
+		return await handler(data);
+	}
+};
+
+
+
+Cycni.star = async function (opt) {
+	return await Promise.all(Object.keys(opt.data).map(async function (key) {
+
+		let keys = opt.keys.slice(opt.index);
+
+		keys[0] = key;
+
+		return await Cycni.traverse({
+			keys: keys,
+			data: opt.data,
+			value: opt.value,
+			ks: opt.ks.slice(0, opt.index).concat(keys)
+		});
+
+	}));
+};
+
 Cycni.traverse = async function (opt) {
 
-	if (!opt.keys && opt.keys.length === 1 && opt.keys[0] === '.') {
-		return {
-			key: '.',
-			data: res.data
-		}
-	}
+	let data = opt.data;
+	let keys = opt.ks || opt.keys;
+	let last = opt.keys.length === 0 ? 0 : opt.keys.length - 1;
 
-	var data = opt.data;
-	var keys = opt.keys;
-	var create = opt.create;
-	var length = keys.length;
-	var last = length === 0 ? 0 : length - 1;
-
-	for (var i = 0; i < last; i++) {
-		var key = keys[i];
+	for (let i = 0; i < last; i++) {
+		let key = opt.keys[i];
 
 		if (!(key in data)) {
-			if (create === true) {
-				if (isNaN(keys[i+1])) {
+
+			if (key === '*') {
+				return await Cycni.star({
+					index: i,
+					ks: keys,
+					data: data,
+					keys: opt.keys,
+					value: opt.value
+				});
+			}
+
+			if (key === '.') {
+				return {
+					key: key,
+					keys: keys,
+					data: data
+				}
+			}
+
+			if (opt.create === true) {
+				if (isNaN(opt.keys[i+1])) {
 					data[key] = {};
 				} else {
 					data[key] = [];
 				}
-			} else if (create === false) {
+			} else if (opt.create === false) {
 				break;
 			} else {
 				throw new Error('Cycni.traverse - property ' + key + ' is undefined');
@@ -54,101 +103,139 @@ Cycni.traverse = async function (opt) {
 	}
 
 	return {
-		key: keys[last],
-		data: data
+		data: data,
+		keys: keys,
+		key: opt.keys[last]
 	};
-};
-
-Cycni.get = async function (opt) {
-	opt.create = false;
-	const res = await Cycni.traverse(opt);
-	return res.data[res.key];
 };
 
 Cycni.set = async function (opt) {
 	opt.create = true;
-	const res = await Cycni.traverse(opt);
-	if (res.data.constructor === Object) {
-		res.data[res.key] = opt.value;
-	} else if (res.data.constructor === Array) {
-		res.data.splice(res.key, 1, opt.value);
-	}
+
+	let results = await Cycni.traverse(opt);
+
+	Cycni.return(results, function (result) {
+		if (result.data.constructor === Object) {
+			result.data[result.key] = opt.value;
+		} else if (result.data.constructor === Array) {
+			result.data.splice(result.key, 1, opt.value);
+		}
+	});
 };
 
 Cycni.add = async function (opt) {
 	opt.create = undefined;
 
-	const res = await Cycni.traverse(opt);
+	let results = await Cycni.traverse(opt);
 
-	if (res.data.constructor === Object) {
-		if (res.key in res.data) {
-			throw new Error('Cycni.add - property ' + res.key + ' exists');
-		} else {
-			res.data[res.key] = opt.value;
+	Cycni.return(results, function (result) {
+		if (result.data.constructor === Object) {
+			if (result.key in result.data) {
+				throw new Error('Cycni.add - property ' + result.key + ' exists');
+			} else {
+				result.data[result.key] = opt.value;
+			}
+		} else if (result.data.constructor === Array) {
+			result.data.splice(result.key, 0, opt.value);
 		}
-	} else if (res.data.constructor === Array) {
-		res.data.splice(res.key, 0, opt.value);
-	}
+	});
 };
 
 Cycni.push = async function (opt) {
 	opt.create = true;
-	const res = await Cycni.traverse(opt);
-	const data = res.key === '.' ? res.data : res.data[res.key];
 
-	if (data.constructor === Object) {
-		const length = Object.keys(data).length;
-		let index = length;
-		let key = '_' + index;
+	let results = await Cycni.traverse(opt);
 
-		while (key in data) {
-			key = '_' + index++;
+	return Cycni.return(results, function (result) {
+		let data = result.key === '.' ? result.data : result.data[result.key];
+
+		if (data.constructor === Object) {
+			const length = Object.keys(data).length;
+
+			let index = length;
+			let key = '_' + index;
+
+			while (key in data) {
+				key = '_' + index++;
+			}
+
+			data[key] = opt.value;
+
+			return length+1;
+		} else if (data.constructor === Array) {
+			return data.push(opt.value);
 		}
 
-		data[key] = opt.value;
-
-		return length+1;
-	}else if (data.constructor === Array) {
-		return data.push(opt.value);
-	}
-
-	return 0;
-};
-
-Cycni.has = async function (opt) {
-	opt.create = false;
-	const res = await Cycni.traverse(opt);
-	return res.key in res.data;
+	});
 };
 
 Cycni.remove = async function (opt) {
 	opt.create = false;
-	const res = await Cycni.traverse(opt);
 
-	let value;
+	let results = await Cycni.traverse(opt);
 
-	if (res.data.constructor === Object) {
-		value = res.data[res.key];
-		delete res.data[res.key];
-	} else if (res.data.constructor === Array) {
-		value = res.data.splice(res.key, 1);
+	return Cycni.return(results, async function (result) {
+		let value;
+
+		if (result.data.constructor === Object) {
+			value = result.data[result.key];
+			delete result.data[result.key];
+		} else if (result.data.constructor === Array) {
+			value = result.data.splice(result.key, 1);
+		}
+
+		return value;
+	});
+};
+
+Cycni.find = async function (opt) {
+	opt.create = undefined;
+
+	let results = await Cycni.traverse(opt);
+
+	if (results.constructor === Object) {
+		return result.data[result.key] === opt.value;
 	}
 
-	return value;
+	return results.filter(function (result) {
+		return result.data[result.key] === opt.value;
+	});
+};
+
+Cycni.get = async function (opt) {
+	opt.create = false;
+
+	let results = await Cycni.traverse(opt);
+
+	return await Cycni.return(results, async function (result) {
+		return result.data[result.key];
+	});
+};
+
+Cycni.has = async function (opt) {
+	opt.create = false;
+
+	let results = await Cycni.traverse(opt);
+
+	return await Cycni.return(results, async function (result) {
+		return result.key in result.data;
+	});
 };
 
 Cycni.size = async function (opt) {
 	opt.create = false;
-	const res = await Cycni.traverse(opt);
-	const data = res.key === '.' ? res.data : res.data[res.key];
 
-	if (data.constructor === Object) {
-		return Object.keys(data).length;
-	} else if (data.constructor === Array) {
-		return data.length;
-	}
+	let results = await Cycni.traverse(opt);
 
-	return 0;
+	return await Cycni.return(results, async function (result) {
+		let data = result.key === '.' ? result.data : result.data[result.key];
+		if (data.constructor === Object) {
+			return Object.keys(data).length;
+		} else if (data.constructor === Array) {
+			return data.length;
+		}
+		return 0;
+	});
 };
 
 Cycni.clone = async function (variable) {

@@ -8,8 +8,10 @@ const data = require('./data');
 
 	const opt = {
 		data: data,
-		keys: ['array', 0],
-		value: { name: 'new' }
+		// keys: ['array', 0],
+		// value: { name: 'new' }
+		value: { name: 'bar' },
+		keys: ['batters', '*', 'foo']
 	};
 
 	try {

@@ -50,10 +50,16 @@ console.log(res); /*
 
 ## Api
 
+### Cycni.find(opt)
+Returns the parent of the last key or top level.
+- `opt: Object`
+	- `value: Any`
+	- `keys: Array`
+	- `data: Object, Array`
+
 ### Cycni.get(opt)
 Returns the retrieved value.
 - `opt: Object`
-	- `value: Any`
 	- `keys: Array`
 	- `data: Object, Array`
 

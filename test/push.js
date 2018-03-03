@@ -1,10 +1,7 @@
-'use strict';
-
-const Cycni = require('../dist/cycni');
+const Cycni = require('../index');
 const data = require('./data');
 
 (async function() {
-	let res;
 
 	const opt = {
 		data: data,
@@ -12,16 +9,15 @@ const data = require('./data');
 		value: { name: 'new' }
 	};
 
-	try {
-		res = await Cycni.push(opt);
-		res = await Cycni.push(opt);
-	} catch (e) {
-		console.error(e);
-	}
+	let res;
+	res = await Cycni.push(opt);
+	res = await Cycni.push(opt);
 
 	console.log('\n');
 	console.log(data);
 	console.log('\n');
 	console.log(res);
 
-}());
+}()).catch(function (error) {
+	console.error(error);
+});

@@ -1,40 +1,14 @@
-(function (global, factory) {
-	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-	typeof define === 'function' && define.amd ? define('Cycni', factory) :
-	(global.Cycni = factory());
-}(this, (function () { 'use strict';
+'use strict';
 
-	/*
-		@banner
-		title: cycni
-		version: 2.1.0
-		license: mpl-2.0
-		author: alexander elias
+module.exports = {
 
-		This Source Code Form is subject to the terms of the Mozilla Public
-		License, v. 2.0. If a copy of the MPL was not distributed with this
-		file, You can obtain one at http://mozilla.org/MPL/2.0/.
-	*/
-
-	// import Uuid from './uuid.js';
-
-	const Cycni = {};
-
-	Cycni.uuid = async function () {
-		return await Uuid();
-	};
-
-	// Cycni.traverseKeys = async function (data, method) {
-	// 	return await Promise.all(data.map(method));
-	// };
-
-	Cycni.map = async function (data, callback) {
+	map: async function (data, callback) {
 		return await Promise.all(data.map(callback));
-	};
+	},
 
-	Cycni.return = async function (data, handler) {
-		if (data.constructor === Array) {
-			if (handler.constructor === Function) {
+	return: async function (data, handler) {
+		if (data && data.constructor === Array) {
+			if (handler && handler.constructor === Function) {
 				return data.map(handler);
 			} else {
 				return await Promise.all(data.map(handler));
@@ -42,18 +16,18 @@
 		} else {
 			return await handler(data);
 		}
-	};
+	},
 
+	star: async function (opt) {
+		const self = this;
 
-
-	Cycni.star = async function (opt) {
 		return await Promise.all(Object.keys(opt.data).map(async function (key) {
 
 			let keys = opt.keys.slice(opt.index);
 
 			keys[0] = key;
 
-			return await Cycni.traverse({
+			return await self.traverse({
 				keys: keys,
 				data: opt.data,
 				value: opt.value,
@@ -61,9 +35,9 @@
 			});
 
 		}));
-	};
+	},
 
-	Cycni.traverse = async function (opt) {
+	traverse: async function (opt) {
 
 		let data = opt.data;
 		let keys = opt.ks || opt.keys;
@@ -75,7 +49,7 @@
 			if (!(key in data)) {
 
 				if (key === '*') {
-					return await Cycni.star({
+					return await this.star({
 						index: i,
 						ks: keys,
 						data: data,
@@ -113,28 +87,28 @@
 			keys: keys,
 			key: opt.keys[last]
 		};
-	};
+	},
 
-	Cycni.set = async function (opt) {
+	set: async function (opt) {
 		opt.create = true;
 
-		let results = await Cycni.traverse(opt);
+		let results = await this.traverse(opt);
 
-		Cycni.return(results, function (result) {
+		this.return(results, async function (result) {
 			if (result.data.constructor === Object) {
 				result.data[result.key] = opt.value;
 			} else if (result.data.constructor === Array) {
 				result.data.splice(result.key, 1, opt.value);
 			}
 		});
-	};
+	},
 
-	Cycni.add = async function (opt) {
+	add: async function (opt) {
 		opt.create = undefined;
 
-		let results = await Cycni.traverse(opt);
+		let results = await this.traverse(opt);
 
-		Cycni.return(results, function (result) {
+		this.return(results, async function (result) {
 			if (result.data.constructor === Object) {
 				if (result.key in result.data) {
 					throw new Error('Cycni.add - property ' + result.key + ' exists');
@@ -145,14 +119,14 @@
 				result.data.splice(result.key, 0, opt.value);
 			}
 		});
-	};
+	},
 
-	Cycni.push = async function (opt) {
+	push: async function (opt) {
 		opt.create = true;
 
-		let results = await Cycni.traverse(opt);
+		let results = await this.traverse(opt);
 
-		return Cycni.return(results, function (result) {
+		return this.return(results, async function (result) {
 			let data = result.key === '.' ? result.data : result.data[result.key];
 
 			if (data.constructor === Object) {
@@ -173,14 +147,14 @@
 			}
 
 		});
-	};
+	},
 
-	Cycni.remove = async function (opt) {
+	remove: async function (opt) {
 		opt.create = false;
 
-		let results = await Cycni.traverse(opt);
+		let results = await this.traverse(opt);
 
-		return Cycni.return(results, async function (result) {
+		return this.return(results, async function (result) {
 			let value;
 
 			if (result.data.constructor === Object) {
@@ -192,12 +166,12 @@
 
 			return value;
 		});
-	};
+	},
 
-	Cycni.find = async function (opt) {
+	find: async function (opt) {
 		opt.create = undefined;
 
-		let results = await Cycni.traverse(opt);
+		let results = await this.traverse(opt);
 
 		if (results.constructor === Object) {
 			return result.data[result.key] === opt.value;
@@ -206,34 +180,34 @@
 		return results.filter(function (result) {
 			return result.data[result.key] === opt.value;
 		});
-	};
+	},
 
-	Cycni.get = async function (opt) {
+	get: async function (opt) {
 		opt.create = false;
 
-		let results = await Cycni.traverse(opt);
+		let results = await this.traverse(opt);
 
-		return await Cycni.return(results, async function (result) {
+		return await this.return(results, async function (result) {
 			return result.data[result.key];
 		});
-	};
+	},
 
-	Cycni.has = async function (opt) {
+	has: async function (opt) {
 		opt.create = false;
 
-		let results = await Cycni.traverse(opt);
+		let results = await this.traverse(opt);
 
-		return await Cycni.return(results, async function (result) {
+		return await this.return(results, async function (result) {
 			return result.key in result.data;
 		});
-	};
+	},
 
-	Cycni.size = async function (opt) {
+	size: async function (opt) {
 		opt.create = false;
 
-		let results = await Cycni.traverse(opt);
+		let results = await this.traverse(opt);
 
-		return await Cycni.return(results, async function (result) {
+		return await this.return(results, async function (result) {
 			let data = result.key === '.' ? result.data : result.data[result.key];
 			if (data.constructor === Object) {
 				return Object.keys(data).length;
@@ -242,9 +216,9 @@
 			}
 			return 0;
 		});
-	};
+	},
 
-	Cycni.clone = async function (variable) {
+	clone: async function (variable) {
 		var clone;
 
 		if (variable === null || variable === undefined || typeof variable !== 'object') {
@@ -274,8 +248,6 @@
 		}
 
 		return clone;
-	};
+	}
 
-	return Cycni;
-
-})));
+};

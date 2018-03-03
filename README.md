@@ -1,13 +1,12 @@
+
 # Cycni
 A collection manipulation tool
 
 ### Overview
-Cycni enables the ability to manipulation and interact with an infinitely deep collection. It provides an interface to manipulate Objects and Arrays in a seamless and consistent method. Now using async/await.
+Cycni enables the ability to manipulation and interact with an infinitely deep collection. It provides an interface to manipulate Objects and Arrays in a seamless and consistent method.
 
 ### Install
 - `npm i cycni --save`
-- UMD `dist/cycni.js`
-- ESMD `src/cycni.js`
 
 ### Examples
 ```js
@@ -21,18 +20,15 @@ let data = 	{
 	]
 };
 
-let res, opt = {
+let opt = {
 	data: data,
 	keys: ['batters', 0]
 };
 
-try {
-	res = await Cycni.remove(opt);
-} catch (e) {
-	console.error(e);
-}
+let res = await Cycni.remove(opt);
 
-console.log(data); /*
+console.log(data);
+/*
 	{
 		id: '0',
 		name: 'Cake',
@@ -43,7 +39,8 @@ console.log(data); /*
   	}
 */
 
-console.log(res); /*
+console.log(res);
+/*
 	{ id: 'zero', type: 'Regular' }
 */
 ```
@@ -86,7 +83,6 @@ Dynamically pushes data to an Array or Object. If pushing to an Object then a ke
 	- `keys: Array`
 		- `['.']` top level reference
 	- `data: Object, Array`
-
 
 ### Cycni.remove(opt)
 Returns any removed data.

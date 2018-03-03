@@ -1,25 +1,20 @@
-'use strict';
-
-const Cycni = require('../dist/cycni');
+const Cycni = require('../index');
 const data = require('./data');
 
 (async function() {
-	let res;
 
-	let opt = {
+	const opt = {
 		data: data,
 		keys: ['batters', 0]
 	};
 
-	try {
-		res = await Cycni.get(opt);
-	} catch (e) {
-		console.log(e);
-	}
+	let res = await Cycni.get(opt);
 
 	console.log('\n');
 	console.log(data);
 	console.log('\n');
 	console.log(res);
 
-}());
+}()).catch(function (error) {
+	console.error(error);
+});

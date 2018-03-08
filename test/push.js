@@ -3,20 +3,19 @@ const data = require('./data');
 
 (async function() {
 
-	const opt = {
+	let opt = {
 		data: data,
 		keys: ['.'],
 		value: { name: 'new' }
 	};
 
-	let res;
-	res = await Cycni.push(opt);
-	res = await Cycni.push(opt);
+	let result;
+	
+	result = await Cycni.push(opt);
+	result = await Cycni.push(opt);
 
-	console.log('\n');
-	console.log(data);
-	console.log('\n');
-	console.log(res);
+	console.log(`\ndata: ${JSON.stringify(data, null, '  ')}\n`);
+	console.log(`\nresult: ${JSON.stringify(result, null, '  ')}\n`);
 
 }()).catch(function (error) {
 	console.error(error);

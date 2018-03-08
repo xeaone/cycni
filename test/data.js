@@ -1,5 +1,7 @@
 
 module.exports = {
+	SPACE: '  ',
+	
 	id: '0',
 	name: 'Cake',
 	batters: [

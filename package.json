@@ -4,9 +4,9 @@
 	"description": "A collection manipulation tool",
 	"main": "index.js",
 	"scripts": {
-		"build-dev": "muleify pack -b src/cycni.js dist/cycni.js",
-		"build-min": "muleify pack -bm src/cycni.js dist/cycni.min.js",
-		"build": "npm run build-dev && npm run build-min"
+		"b": "npm run bd && npm run bm",
+		"bd": "muleify pack -bt src/cycni.js dist/cycni.js",
+		"bm": "muleify pack -btm src/cycni.js dist/cycni.min.js"
 	},
 	"repository": {
 		"type": "git",

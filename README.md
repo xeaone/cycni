@@ -10,6 +10,8 @@ Cycni enables the ability to manipulation and interact with an infinitely deep c
 
 ### Examples
 ```js
+const Cycni = require('cycni');
+
 let data = 	{
 	id: '0',
 	name: 'Cake',
@@ -20,12 +22,12 @@ let data = 	{
 	]
 };
 
-let opt = {
+let options = {
 	data: data,
 	keys: ['batters', 0]
 };
 
-let res = await Cycni.remove(opt);
+let result = await Cycni.remove(options);
 
 console.log(data);
 /*
@@ -39,81 +41,61 @@ console.log(data);
   	}
 */
 
-console.log(res);
+console.log(result);
 /*
 	{ id: 'zero', type: 'Regular' }
 */
 ```
 
 ## Api
+Special `options.keys` values include `.` and `*`.
 
-### Cycni.find(opt)
-Returns the parent of the last key or top level.
-- `opt: Object`
-	- `value: Any`
-	- `keys: Array`
-	- `data: Object, Array`
+- `find: Function` Returns the parent of the last key or top level.
+	- `options: Object`
+		- `value: Any`
+		- `keys: Array`
+		- `data: Object, Array`
 
-### Cycni.get(opt)
-Returns the retrieved value.
-- `opt: Object`
-	- `keys: Array`
-	- `data: Object, Array`
+- `get: Function` Returns the retrieved value.
+	- `options: Object`
+		- `keys: Array`
+		- `data: Object, Array`
 
-### Cycni.set(opt)
-If a key does not exists and the key is a String then an Object is created.
-If a key does not exists and the key is a Number then an Array is created.
-If the key already exists it overwrites that value.
-- `opt: Object`
-	- `value: Any`
-	- `keys: Array`
-	- `data: Object, Array`
+- `set: Function` If a key does not exists and the key is a String then an Object is created. If a key does not exists and the key is a Number then an Array is created. If the key already exists it overwrites that value.
+	- `options: Object`
+		- `value: Any`
+		- `keys: Array`
+		- `data: Object, Array`
 
-### Cycni.add(opt)
-If a key in the keys does not exist or if you try to set a key that already exists this will throw an error.
-- `opt: Object`
-	- `value: Any`
-	- `keys: Array`
-	- `data: Object, Array`
+- `add: Function` If a key in the keys does not exist or if you try to set a key that already exists this will throw an error.
+	- `options: Object`
+		- `value: Any`
+		- `keys: Array`
+		- `data: Object, Array`
 
-### Cycni.push(opt)
-Dynamically pushes data to an Array or Object. If pushing to an Object then a key will auto generate in the form of `_N` N being the length.
-- `opt: Object`
-	- `value: Any`
-	- `keys: Array`
-		- `['.']` top level reference
-	- `data: Object, Array`
+- `push: Function` Dynamically pushes data to an Array or Object. If pushing to an Object then a key will auto generate in the form of `_N` N being the length.
+	- `options: Object`
+		- `value: Any`
+		- `keys: Array`
+		- `data: Object, Array`
 
-### Cycni.remove(opt)
-Returns any removed data.
-- `opt: Object`
-- `value: Any`
-	- `keys: Array`
-	- `data: Object, Array`
+- `remove: Function` Returns any removed data.
+	- `options: Object`
+		- `value: Any`
+		- `keys: Array`
+		- `data: Object, Array`
 
-### Cycni.has(opt)
-Returns true or false.
-- `opt: Object`
-	- `value: Any`
-	- `keys: Array`
-	- `data: Object, Array`
+- `has: Function` Returns true or false.
+	- `options: Object`
+		- `value: Any`
+		- `keys: Array`
+		- `data: Object, Array`
 
-### Cycni.size(opt)
-Returns the length of the Array or the length of the Keys if it is an object.
-- `opt: Object`
-	- `value: Any`
-	- `keys: Array`
-		- `['.']` top level reference
-	- `data: Object, Array`
-
-### Cycni.traverse(opt)
-Returns an Object with two properties.
-The last key in the keys array `res.key`.
-The parent of the last key in the keys array `res.data`.
-- `opt: Object`
-	- `value: Any`
-	- `keys: Array`
-	- `data: Object, Array`
+- `size: Function` Returns the length of the Array or the length of the Keys if it is an object.
+	- `options: Object`
+		- `value: Any`
+		- `keys: Array`
+		- `data: Object, Array`
 
 ### Cycni.clone(Any)
 Returns a clone.

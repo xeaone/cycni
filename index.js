@@ -2,114 +2,127 @@
 
 module.exports = {
 
-	map: async function (data, callback) {
-		return await Promise.all(data.map(callback));
-	},
+	each: async function (data, method, context) {
+		const promises = [];
 
-	return: async function (data, handler) {
-		if (data && data.constructor === Array) {
-			if (handler && handler.constructor === Function) {
-				return data.map(handler);
-			} else {
-				return await Promise.all(data.map(handler));
+		if (!data) {
+			return [];
+		} else if (data.constructor === Array) {
+			for (let i = 0; i < data.length; i++) {
+				promises.push(method.call(this, i, data[i]));
 			}
-		} else {
-			return await handler(data);
+		} else if (data.constructor === Object) {
+			for (let k in data) {
+				promises.push(method.call(this, k, data[k]));
+			}
 		}
+
+		return await Promise.all(promises);
 	},
 
 	star: async function (opt) {
-		const self = this;
+		const results = [];
 
-		return await Promise.all(Object.keys(opt.data).map(async function (key) {
+		await this.each(opt.data, async function (key) {
+			const keys = opt.keys.slice(1);
 
-			let keys = opt.keys.slice(opt.index);
+			keys.unshift(key);
 
-			keys[0] = key;
-
-			return await self.traverse({
+			const result = await this.traverse({
 				keys: keys,
 				data: opt.data,
 				value: opt.value,
-				ks: opt.ks.slice(0, opt.index).concat(keys)
 			});
 
-		}));
+			Array.prototype.push.apply(results, result);
+		});
+
+		return results;
 	},
 
 	traverse: async function (opt) {
+		let parent;
 
 		let data = opt.data;
-		let keys = opt.ks || opt.keys;
-		let last = opt.keys.length === 0 ? 0 : opt.keys.length - 1;
+		const keys = opt.keys;
+		const value = opt.value;
+		const create = opt.create;
+		const length = opt.keys.length;
 
-		for (let i = 0; i < last; i++) {
-			let key = opt.keys[i];
+		for (let index = 0; index < length; index++) {
+			let key = keys[index];
 
 			if (!(key in data)) {
 
 				if (key === '*') {
 					return await this.star({
-						index: i,
-						ks: keys,
 						data: data,
-						keys: opt.keys,
-						value: opt.value
+						value: value,
+						keys: keys.slice(index)
 					});
 				}
 
 				if (key === '.') {
-					return {
+					return [{
 						key: key,
-						keys: keys,
 						data: data
-					}
+					}];
 				}
 
-				if (opt.create === true) {
-					if (isNaN(opt.keys[i+1])) {
+				if (create === true) {
+
+					if (isNaN(keys[index+1])) {
 						data[key] = {};
 					} else {
 						data[key] = [];
 					}
-				} else if (opt.create === false) {
+
+				} else if (create === false) {
 					break;
 				} else {
 					throw new Error('Cycni.traverse - property ' + key + ' is undefined');
 				}
+
 			}
 
+			parent = data;
 			data = data[key];
 		}
 
-		return {
+		return [{
 			data: data,
-			keys: keys,
-			key: opt.keys[last]
-		};
+			parent: parent,
+			key: keys[length-1]
+		}];
 	},
 
 	set: async function (opt) {
 		opt.create = true;
 
-		let results = await this.traverse(opt);
+		const results = await this.traverse(opt);
 
-		this.return(results, async function (result) {
-			if (result.data.constructor === Object) {
+		for (const result  of results) {
+			if (!result.data) {
+				continue;
+			} else if (result.data.constructor === Object) {
 				result.data[result.key] = opt.value;
 			} else if (result.data.constructor === Array) {
 				result.data.splice(result.key, 1, opt.value);
 			}
-		});
+		}
+
+		return results;
 	},
 
 	add: async function (opt) {
 		opt.create = undefined;
 
-		let results = await this.traverse(opt);
+		const results = await this.traverse(opt);
 
-		this.return(results, async function (result) {
-			if (result.data.constructor === Object) {
+		for (const result  of results) {
+			if (!result.data) {
+				continue;
+			} else if (result.data.constructor === Object) {
 				if (result.key in result.data) {
 					throw new Error('Cycni.add - property ' + result.key + ' exists');
 				} else {
@@ -118,19 +131,24 @@ module.exports = {
 			} else if (result.data.constructor === Array) {
 				result.data.splice(result.key, 0, opt.value);
 			}
-		});
+		}
+
+		return results;
 	},
 
 	push: async function (opt) {
 		opt.create = true;
 
-		let results = await this.traverse(opt);
+		const values = [];
+		const results = await this.traverse(opt);
 
-		return this.return(results, async function (result) {
+		for (const result  of results) {
 			let data = result.key === '.' ? result.data : result.data[result.key];
 
-			if (data.constructor === Object) {
-				const length = Object.keys(data).length;
+			if (!data) {
+				continue;
+			} else if (data.constructor === Object) {
+				let length = Object.keys(data).length;
 
 				let index = length;
 				let key = '_' + index;
@@ -140,114 +158,172 @@ module.exports = {
 				}
 
 				data[key] = opt.value;
-
-				return length+1;
+				result.length = length + 1;
+				values.push(result);
 			} else if (data.constructor === Array) {
-				return data.push(opt.value);
+				data.push(opt.value);
+				result.length = data.length;
+				values.push(result);
 			}
 
-		});
+		}
+
+		return values;
 	},
 
 	remove: async function (opt) {
 		opt.create = false;
 
-		let results = await this.traverse(opt);
+		const values = [];
+		const results = await this.traverse(opt);
+		const star = opt.keys.slice(-1)[0];
 
-		return this.return(results, async function (result) {
-			let value;
+		for (const result of results) {
 
-			if (result.data.constructor === Object) {
-				value = result.data[result.key];
-				delete result.data[result.key];
-			} else if (result.data.constructor === Array) {
-				value = result.data.splice(result.key, 1);
+			if (!result.data || !result.parent) continue;
+			if (opt.value !== undefined && result.data !== opt.value) continue
+
+			if (result.parent.constructor === Object) {
+				delete result.parent[result.key];
+			} else if (result.parent.constructor === Array) {
+				if (star) {
+					result.parent.shift();
+				} else {
+					result.parent.splice(result.key, 1);
+				}
 			}
 
-			return value;
-		});
-	},
-
-	find: async function (opt) {
-		opt.create = undefined;
-
-		let results = await this.traverse(opt);
-
-		if (results.constructor === Object) {
-			return result.data[result.key] === opt.value;
+			values.push(result.data);
 		}
 
-		return results.filter(function (result) {
-			return result.data[result.key] === opt.value;
-		});
+		return values;
+	},
+
+
+	// TODO check beneath
+	find: async function (opt) {
+		opt.create = false;
+
+		const values = [];
+		const results = await this.traverse(opt);
+
+		for (const result  of results) {
+			if (result.data[result.key] === opt.value) {
+				values.push(result);
+			}
+		}
+
+		return values;
 	},
 
 	get: async function (opt) {
 		opt.create = false;
 
-		let results = await this.traverse(opt);
+		const values = [];
+		const results = await this.traverse(opt);
 
-		return await this.return(results, async function (result) {
-			return result.data[result.key];
-		});
+		// for (const result  of results) {
+		// 	result.data[result.key]
+		// 	values.push();
+		// }
+
+		return results;
 	},
 
 	has: async function (opt) {
 		opt.create = false;
 
-		let results = await this.traverse(opt);
+		const values = [];
+		const results = await this.traverse(opt);
 
-		return await this.return(results, async function (result) {
-			return result.key in result.data;
-		});
+		for (const result  of results) {
+			values.push(result.key in result.data);
+		}
+
+		return values;
 	},
 
 	size: async function (opt) {
 		opt.create = false;
 
-		let results = await this.traverse(opt);
+		const values = [];
+		const results = await this.traverse(opt);
 
-		return await this.return(results, async function (result) {
+		for (const result  of results) {
 			let data = result.key === '.' ? result.data : result.data[result.key];
-			if (data.constructor === Object) {
-				return Object.keys(data).length;
+
+			if (!data) {
+				values.push(0);
+			} else if (data.constructor === Object) {
+				values.push(Object.keys(data).length);
 			} else if (data.constructor === Array) {
-				return data.length;
-			}
-			return 0;
-		});
-	},
-
-	clone: async function (variable) {
-		var clone;
-
-		if (variable === null || variable === undefined || typeof variable !== 'object') {
-
-			return variable;
-
-		} else if (variable.constructor.name === 'Array') {
-			clone = [];
-
-			for (var i = 0, l = variable.length; i < l; i++) {
-				clone[i] = this.clone(variable[i]);
+				values.push(data.length);
+			} else {
+				values.push(0);
 			}
 
-		} else if (variable.constructor.name === 'Object') {
-			clone = {};
-
-			for (var key in variable) {
-
-				if (variable.hasOwnProperty(key)) {
-					clone[key] = this.clone(variable[key]);
-				}
-
-			}
-
-		} else {
-			throw new Error('Cycni.clone - type is not supported');
 		}
 
-		return clone;
-	}
+		return values;
+	},
+
+	// clone: async function (variable) {
+	// 	let clone;
+	//
+	// 	if (variable === null || variable === undefined || typeof variable !== 'object') {
+	//
+	// 		return variable;
+	//
+	// 	} else if (variable.constructor === Array) {
+	// 		clone = [];
+	//
+	// 		for (var i = 0, l = variable.length; i < l; i++) {
+	// 			clone[i] = this.clone(variable[i]);
+	// 		}
+	//
+	// 	} else if (variable.constructor === Object) {
+	// 		clone = {};
+	//
+	// 		for (var key in variable) {
+	//
+	// 			if (variable.hasOwnProperty(key)) {
+	// 				clone[key] = this.clone(variable[key]);
+	// 			}
+	//
+	// 		}
+	//
+	// 	} else {
+	// 		throw new Error('Cycni.clone - type is not supported');
+	// 	}
+	//
+	// 	return clone;
+	// },
+
+	// operate: function (operations) {
+	// 	if (!operations) throw new Error('Cycni - missing operations');
+	// 	if (operations.constructor !== Array) throw new Error('Cycni - invalid operations type');
+	//
+	// 	let result;
+	//
+	// 	for (const operation of operations) {
+	//
+	// 		// operation.create = operation.create || false;
+	//
+	// 		if (operation.type in this) {
+	//
+	// 			if (!result)
+	//
+	// 			const result = this[operation.type](operation);
+	//
+	//
+	// 		} else {
+	// 			throw new Error('Cycni operation type not found');
+	// 		}
+	//
+	// 	}
+	//
+	//
+	//
+	// }
 
 };
